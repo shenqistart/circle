@@ -1,24 +1,17 @@
 {
   "version": 1,
   "active": false,
-  "skill": "ralplan",
-  "keyword": "$ralplan",
-  "phase": "completed",
-  "activated_at": "2026-04-30T13:42:00.941Z",
-  "updated_at": "2026-04-30T14:10:00Z",
+  "skill": "deep-interview",
+  "keyword": "$deep-interview",
+  "phase": "crystallizing",
+  "activated_at": "2026-05-01T01:26:09.296Z",
+  "updated_at": "2026-05-01T01:27:17.622Z",
   "source": "keyword-detector",
-  "session_id": "019dde95-7da9-7901-8e64-8cdc8c2a504a",
-  "turn_id": "019dde9f-feb0-7873-8f35-51fe829a2c9e",
-  "active_skills": [],
-  "transition_message": "mode transiting: deep-interview -> ralplan",
-  "transition_messages": [
-    "mode transiting: deep-interview -> ralplan"
-  ],
   "input_lock": {
-    "active": false,
+    "active": true,
     "scope": "deep-interview-auto-approval",
-    "acquired_at": "2026-04-30T13:31:51.188Z",
-    "released_at": "2026-04-30T13:42:00.941Z",
+    "acquired_at": "2026-05-01T01:10:19.370Z",
+    "released_at": "",
     "blocked_inputs": [
       "yes",
       "y",
@@ -30,8 +23,8 @@
       "next i should"
     ],
     "message": "Deep interview is active; auto-approval shortcuts are blocked until the interview finishes.",
-    "exit_reason": "handoff"
+    "exit_reason": ""
   },
-  "initialized_mode": "ralplan",
-  "initialized_state_path": ".omx/state/sessions/019dde95-7da9-7901-8e64-8cdc8c2a504a/ralplan-state.json"
+  "session_id": "019ddea2-6371-7da3-849d-2939355eebc9",
+  "active_skills": []
 }

@@ -1,0 +1,40 @@
+# Context Snapshot: roundtable-expert-catalog
+
+- Task statement: Clarify how the newly provided expert skill list should be incorporated into the existing roundtable expert skills MVP.
+- Desired outcome: Update the execution requirements so the first-pass expert catalog and skill categories are explicit before implementation.
+- Stated solution: Add these expert skills:
+  - Paul Graham: startup / writing / product / life philosophy, `paul-graham-skill`, `npx skills add alchaincyf/paul-graham-skill`
+  - Zhang Yiming: product / organization / globalization / talent, `zhang-yiming-skill`, `npx skills add alchaincyf/zhang-yiming-skill`
+  - Karpathy: AI / engineering / education / open source, `karpathy-skill`, `npx skills add alchaincyf/karpathy-skill`
+  - Ilya Sutskever: AI safety / scaling / research taste, `ilya-sutskever-skill`, `npx skills add alchaincyf/ilya-sutskever-skill`
+  - MrBeast: content creation / YouTube methodology, `mrbeast-skill`, `npx skills add alchaincyf/mrbeast-skill`
+  - Trump: negotiation / power / communication / behavioral prediction, `trump-skill`, `npx skills add alchaincyf/trump-skill`
+  - Steve Jobs: product / design / strategy, `steve-jobs-skill`, `npx skills add alchaincyf/steve-jobs-skill`
+  - Elon Musk: engineering / cost / first principles, `elon-musk-skill`, `npx skills add alchaincyf/elon-musk-skill`
+  - Munger: investing / latticework thinking / inversion, `munger-skill`, `npx skills add alchaincyf/munger-skill`
+  - Feynman: learning / teaching / scientific thinking, `feynman-skill`, `npx skills add alchaincyf/feynman-skill`
+  - Naval: wealth / leverage / life philosophy, `naval-skill`, `npx skills add alchaincyf/naval-skill`
+  - Taleb: risk / antifragility / uncertainty, `taleb-skill`, `npx skills add alchaincyf/taleb-skill`
+  - Zhang Xuefeng: education / career planning / class mobility, `zhangxuefeng-skill`, `npx skills add alchaincyf/zhangxuefeng-skill`
+- Additional stated categorization: Other referenced skills include some for boundary generation and some for book distillation.
+- Probable intent hypothesis: The user wants the MVP to ship with a richer curated expert catalog and to distinguish persona/expert skills from orchestration/helper skills.
+- Known facts/evidence:
+  - Existing deep-interview spec: `.omx/specs/deep-interview-roundtable-expert-skills.md`
+  - Approved ralplan: `.omx/plans/roundtable-expert-skills-ralplan-final.md`
+  - Existing plan says first pass uses local presets and does not implement expert import/edit UI or live GitHub sync.
+- Constraints:
+  - Deep-interview is active and must not directly install skills or implement code.
+  - This runtime is outside tmux; ask interview rounds through concise plain text.
+  - Current context is a delta on the existing approved plan.
+- Unknowns/open questions:
+  - Whether these 13 skills should be bundled as built-in first-pass selectable expert presets.
+  - Whether `npx skills add ...` should be run during implementation to inspect/install source skills, or only recorded as source references.
+  - Whether the UI should expose install/add behavior, which would conflict with the current first-pass non-goal of no import/edit UI.
+  - Whether boundary-generation and book-distillation skills should appear in the same selector, be hidden internal tools, or be reserved for future workflows.
+- Decision-boundary unknowns:
+  - Whether implementation agents may install these skill packages without further approval.
+  - Whether persona catalog expansion changes first-pass scope or only seed data.
+- Likely codebase touchpoints:
+  - `.omx/specs/` and `.omx/plans/` for updated requirements artifacts.
+  - Future implementation: `src/data/expertPresets.ts` and provenance fields.
+- Prompt-safe initial-context summary status: not_needed.

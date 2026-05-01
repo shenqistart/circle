@@ -1,17 +1,17 @@
 {
   "version": 1,
   "active": false,
-  "skill": "ralplan",
-  "keyword": "$ralplan",
-  "phase": "completing",
-  "activated_at": "2026-04-30T14:06:19.246Z",
-  "updated_at": "2026-04-30T14:06:19.248Z",
+  "skill": "deep-interview",
+  "keyword": "$deep-interview",
+  "phase": "crystallizing",
+  "activated_at": "2026-05-01T01:26:09.296Z",
+  "updated_at": "2026-05-01T01:27:17.622Z",
   "source": "keyword-detector",
   "input_lock": {
-    "active": false,
+    "active": true,
     "scope": "deep-interview-auto-approval",
-    "acquired_at": "2026-04-30T13:31:51.188Z",
-    "released_at": "2026-04-30T14:06:19.246Z",
+    "acquired_at": "2026-05-01T01:10:19.370Z",
+    "released_at": "",
     "blocked_inputs": [
       "yes",
       "y",
@@ -23,6 +23,8 @@
       "next i should"
     ],
     "message": "Deep interview is active; auto-approval shortcuts are blocked until the interview finishes.",
-    "exit_reason": "handoff"
-  }
+    "exit_reason": ""
+  },
+  "session_id": "019ddea2-6371-7da3-849d-2939355eebc9",
+  "active_skills": []
 }

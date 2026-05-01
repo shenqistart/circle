@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "branch_name": "main",
+      "worktree_path": "/Users/yuewang/Work/br/circle",
+      "status": "active",
+      "created_at": "2026-05-01T01:11:23.017Z",
+      "updated_at": "2026-05-01T01:16:27.049Z"
+    }
+  ]
+}

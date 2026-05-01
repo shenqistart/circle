@@ -1,16 +1,16 @@
 {
-  "active": false,
+  "active": true,
   "mode": "deep-interview",
-  "current_phase": "completed",
-  "started_at": "2026-04-30T13:33:05.311Z",
-  "updated_at": "2026-04-30T13:40:45.464Z",
+  "current_phase": "intent-first",
+  "started_at": "2026-05-01T01:11:22.544Z",
+  "updated_at": "2026-05-01T01:16:26.605Z",
   "session_id": "",
   "thread_id": "019dde95-7da9-7901-8e64-8cdc8c2a504a",
-  "turn_id": "019dde9d-ac7f-79f1-b442-6b96e9fef30c",
+  "turn_id": "019de11b-4abd-74a3-b2ac-b8c614f99804",
   "input_lock": {
     "active": true,
     "scope": "deep-interview-auto-approval",
-    "acquired_at": "2026-04-30T13:31:51.188Z",
+    "acquired_at": "2026-05-01T01:10:19.370Z",
     "released_at": "",
     "blocked_inputs": [
       "yes",
@@ -24,12 +24,5 @@
     ],
     "message": "Deep interview is active; auto-approval shortcuts are blocked until the interview finishes.",
     "exit_reason": ""
-  },
-  "completed_at": "2026-04-30T13:42:00.952Z",
-  "auto_completed_reason": "mode transiting: deep-interview -> ralplan",
-  "completion_note": "Auto-completed deep-interview during allowlisted transition to ralplan.",
-  "transition_source": "keyword-detector",
-  "transition_target_mode": "ralplan",
-  "run_outcome": "finish",
-  "lifecycle_outcome": "finished"
+  }
 }
