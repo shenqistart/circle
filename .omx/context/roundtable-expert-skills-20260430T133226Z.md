@@ -1,0 +1,27 @@
+# Context Snapshot: roundtable-expert-skills
+
+- Task statement: Build a roundtable page where users can select different expert skills and let them discuss a question together.
+- Desired outcome: A usable page/workflow for choosing expert/persona skills from reference repositories, entering a question, and producing a multi-expert discussion.
+- Stated solution: A "roundtable" page with selectable expert skills.
+- Probable intent hypothesis: The user wants to turn several existing persona/discussion/book-style skill repositories into an interactive product experience for structured multi-perspective discussion.
+- Known facts/evidence:
+  - Persona repository: https://github.com/alchaincyf/nuwa-skill
+  - Roundtable repository: https://github.com/linzzzzzz/zhuzi-skill
+  - Roundtable repository: https://github.com/yunshu0909/yunshu_skillshub/tree/master/multi-perspective-analysis
+  - Book skill repository: https://github.com/kangarooking/cangjie-skill
+  - Current working directory has no app source files or package manifest, only `.omx` state/log files.
+- Constraints:
+  - Deep-interview mode must clarify requirements and must not implement directly.
+  - Current surface is outside tmux, so OMX question bridge is unavailable; user questions will be plain text per runtime instruction.
+- Unknowns/open questions:
+  - Whether the page is a local prototype, production web app, Codex/OMX plugin UI, or integration into another app.
+  - Whether expert skills should be imported from GitHub dynamically, curated manually, or represented as local prompt/persona presets.
+  - Whether the discussion should use real LLM calls, simulated/static output, or an orchestrated agent workflow.
+  - Target users, deployment environment, persistence needs, and authentication needs.
+  - Exact acceptance criteria for "一起来讨论一个问题".
+- Decision-boundary unknowns:
+  - What the agent may decide about framework, UI style, data model, and LLM provider without confirmation.
+  - Which parts of the source repositories may be adapted, copied, or only referenced.
+- Likely codebase touchpoints:
+  - None found yet in the current directory; likely greenfield scaffold unless the user points to another app.
+- Prompt-safe initial-context summary status: not_needed.
