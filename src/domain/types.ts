@@ -93,6 +93,33 @@ export type RoundtableResult = {
   moderatorSummary: ModeratorSummary;
 };
 
+export type ExpertSummary = {
+  id: string;
+  name: string;
+  domainTags: string[];
+};
+
+export type RoundtableStreamEvent =
+  | { type: "run_started"; runId: string; question: string; experts: ExpertSummary[] }
+  | { type: "round_started"; roundId: number; title: string }
+  | {
+      type: "expert_turn_started";
+      roundId: number;
+      expertId: string;
+      expertName: string;
+      responseMode: ResponseMode;
+      respondsToExpertId?: string;
+    }
+  | { type: "expert_turn_delta"; roundId: number; expertId: string; delta: string }
+  | { type: "expert_turn_completed"; turn: ExpertTurn }
+  | { type: "moderator_summary_started" }
+  | { type: "moderator_summary_delta"; section?: keyof ModeratorSummary; delta: string }
+  | { type: "moderator_summary_completed"; summary: ModeratorSummary }
+  | { type: "final_result"; result: RoundtableResult }
+  | { type: "error"; message: string; retryable: boolean };
+
+export type GenerationStatus = "idle" | "streaming" | "succeeded" | "failed";
+
 export type PresetExportFile = {
   schemaVersion: 1;
   exportedAt: string;

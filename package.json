@@ -5,11 +5,12 @@
   "packageManager": "pnpm@9.9.0",
   "type": "module",
   "scripts": {
-    "api": "node server/roundtableServer.mjs",
+    "api": "uvicorn app.main:app --app-dir server --host 127.0.0.1 --port 8787 --reload",
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:api": "python3 -m pytest server/tests",
     "test:watch": "vitest"
   },
   "dependencies": {

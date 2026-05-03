@@ -6,16 +6,98 @@ import { DiscussionView } from "./components/DiscussionView";
 import { QuestionComposer } from "./components/QuestionComposer";
 import { builtInExperts } from "./data/expertPresets";
 import { canGenerateWithExperts, recommendExperts } from "./domain/expertRouter";
-import type { ExpertPreset, RoundtableResult, RoutingMatch } from "./domain/types";
+import type {
+  DiscussionRound,
+  ExpertPreset,
+  ExpertTurn,
+  GenerationStatus,
+  ModeratorSummary,
+  RoundtableResult,
+  RoundtableStreamEvent,
+  RoutingMatch
+} from "./domain/types";
 import {
   exportLocalPresets,
   importLocalPresets,
   loadLocalPresets,
   saveLocalPresets
 } from "./services/expertCatalogStorage";
-import { generateRoundtable as generateRoundtableResult } from "./services/roundtableApi";
+import { streamRoundtable } from "./services/roundtableApi";
 
 const starterQuestion = "我想做一个 AI 教育产品，如何验证需求、控制风险并设计第一版？";
+const emptySummary = (): ModeratorSummary => ({ consensus: [], disagreements: [], insights: [], actions: [] });
+
+const ensureRound = (rounds: DiscussionRound[], roundId: number, title: string): DiscussionRound[] =>
+  rounds.some((round) => round.id === roundId) ? rounds : [...rounds, { id: roundId, title, turns: [] }];
+
+const upsertTurn = (rounds: DiscussionRound[], turn: ExpertTurn): DiscussionRound[] =>
+  rounds.map((round) =>
+    round.id === turn.roundId
+      ? { ...round, turns: [...round.turns.filter((item) => item.expertId !== turn.expertId), turn] }
+      : round
+  );
+
+const appendTurnDelta = (
+  rounds: DiscussionRound[],
+  event: Extract<RoundtableStreamEvent, { type: "expert_turn_delta" }>
+): DiscussionRound[] =>
+  rounds.map((round) =>
+    round.id === event.roundId
+      ? {
+          ...round,
+          turns: round.turns.map((turn) =>
+            turn.expertId === event.expertId ? { ...turn, content: `${turn.content}${event.delta}` } : turn
+          )
+        }
+      : round
+  );
+
+const applyStreamEvent = (
+  current: RoundtableResult | null,
+  event: RoundtableStreamEvent,
+  question: string,
+  experts: ExpertPreset[]
+): RoundtableResult => {
+  if (event.type === "final_result") return event.result;
+  const base = current ?? { question, experts, rounds: [], moderatorSummary: emptySummary() };
+  if (event.type === "round_started") {
+    return { ...base, rounds: ensureRound(base.rounds, event.roundId, event.title) };
+  }
+  if (event.type === "expert_turn_started") {
+    const turn: ExpertTurn = {
+      expertId: event.expertId,
+      expertName: event.expertName,
+      roundId: event.roundId,
+      responseMode: event.responseMode,
+      respondsToExpertId: event.respondsToExpertId,
+      content: ""
+    };
+    return { ...base, rounds: upsertTurn(ensureRound(base.rounds, event.roundId, `Round ${event.roundId}`), turn) };
+  }
+  if (event.type === "expert_turn_delta") {
+    return { ...base, rounds: appendTurnDelta(base.rounds, event) };
+  }
+  if (event.type === "expert_turn_completed") {
+    return { ...base, rounds: upsertTurn(base.rounds, event.turn) };
+  }
+  if (event.type === "moderator_summary_delta") {
+    const currentDraft = base.moderatorSummary.insights.find((item) => item.startsWith("主持人生成中：")) ?? "主持人生成中：";
+    return {
+      ...base,
+      moderatorSummary: {
+        ...base.moderatorSummary,
+        insights: [
+          ...base.moderatorSummary.insights.filter((item) => !item.startsWith("主持人生成中：")),
+          `${currentDraft}${event.delta}`
+        ]
+      }
+    };
+  }
+  if (event.type === "moderator_summary_completed") {
+    return { ...base, moderatorSummary: event.summary };
+  }
+  return base;
+};
 
 export function App() {
   const [question, setQuestion] = useState(starterQuestion);
@@ -28,7 +110,8 @@ export function App() {
   const [importText, setImportText] = useState("");
   const [importMessage, setImportMessage] = useState("");
   const [generationMessage, setGenerationMessage] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationStatus, setGenerationStatus] = useState<GenerationStatus>("idle");
+  const [generationError, setGenerationError] = useState("");
 
   const allExperts = useMemo(() => [...builtInExperts, ...localPresets], [localPresets]);
 
@@ -59,12 +142,24 @@ export function App() {
 
   const generateRoundtable = async () => {
     if (!canGenerateWithExperts(selectedExperts)) return;
-    setIsGenerating(true);
+    setGenerationStatus("streaming");
     setGenerationMessage("正在生成圆桌...");
-    const generated = await generateRoundtableResult(question, selectedExperts);
-    setResult(generated.result);
-    setGenerationMessage(generated.message);
-    setIsGenerating(false);
+    setGenerationError("");
+    setResult({ question, experts: selectedExperts, rounds: [], moderatorSummary: emptySummary() });
+    try {
+      const finalResult = await streamRoundtable(question, selectedExperts, {
+        onEvent: (event) => {
+          setResult((current) => applyStreamEvent(current, event, question, selectedExperts));
+        }
+      });
+      setResult(finalResult);
+      setGenerationStatus("succeeded");
+      setGenerationMessage("已完成真实流式圆桌。");
+    } catch (error) {
+      setGenerationStatus("failed");
+      setGenerationError(error instanceof Error ? error.message : "圆桌生成失败");
+      setGenerationMessage("");
+    }
   };
 
   const savePreset = (preset: ExpertPreset) => {
@@ -126,8 +221,11 @@ export function App() {
             allExperts={allExperts}
             onToggleExpert={toggleExpert}
             onGenerate={generateRoundtable}
-            isGenerating={isGenerating}
+            onRetry={generateRoundtable}
+            isGenerating={generationStatus === "streaming"}
             generationMessage={generationMessage}
+            generationError={generationError}
+            canRetry={generationStatus === "failed"}
           />
           <DiscussionView result={result} />
         </div>

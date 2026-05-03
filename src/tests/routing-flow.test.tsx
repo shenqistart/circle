@@ -1,18 +1,47 @@
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
+import { builtInExperts } from "../data/expertPresets";
+import { createMockRoundtable } from "../domain/mockRoundtableGenerator";
+
+const encoder = new TextEncoder();
+
+const streamFromText = (text: string) =>
+  new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(encoder.encode(text));
+      controller.close();
+    }
+  });
+
+const sse = (event: unknown) => `event: roundtable\ndata: ${JSON.stringify(event)}\n\n`;
 
 describe("routing flow", () => {
   beforeEach(() => {
     window.localStorage.clear();
-    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("offline")));
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  it("recommends experts, gates generation below two experts, and generates a roundtable", async () => {
+  it("recommends experts, gates generation below two experts, and streams a roundtable", async () => {
+    const finalResult = createMockRoundtable("AI 教育产品如何验证需求并控制风险？", builtInExperts.slice(0, 3));
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        body: streamFromText(
+          [
+            sse({ type: "run_started", runId: "1", question: finalResult.question, experts: [] }),
+            sse({ type: "round_started", roundId: 1, title: "Round 1 · 初始立场" }),
+            sse({ type: "expert_turn_completed", turn: finalResult.rounds[0].turns[0] }),
+            sse({ type: "final_result", result: finalResult })
+          ].join("")
+        )
+      })
+    );
+
     render(<App />);
 
     fireEvent.change(screen.getByLabelText("输入要讨论的问题"), {
@@ -32,7 +61,36 @@ describe("routing flow", () => {
 
     await waitFor(() => expect(screen.getByText("Round 1 · 初始立场")).toBeInTheDocument());
     expect(screen.getByText("主持人总结")).toBeInTheDocument();
-    expect(screen.getByText("后端大模型不可用，已使用本地 mock 生成。")).toBeInTheDocument();
+    expect(screen.getByText("已完成真实流式圆桌。")).toBeInTheDocument();
+  });
+
+  it("shows backend errors and lets the user retry", async () => {
+    const result = createMockRoundtable("AI 教育产品如何验证需求并控制风险？", builtInExperts.slice(0, 3));
+    const fetchSpy = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        body: streamFromText(sse({ type: "error", message: "provider unavailable", retryable: true }))
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        body: streamFromText(sse({ type: "final_result", result }))
+      });
+    vi.stubGlobal("fetch", fetchSpy);
+
+    render(<App />);
+
+    fireEvent.change(screen.getByLabelText("输入要讨论的问题"), {
+      target: { value: "AI 教育产品如何验证需求并控制风险？" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "推荐 Top 3" }));
+    fireEvent.click(screen.getByRole("button", { name: "生成圆桌" }));
+
+    await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("provider unavailable"));
+    fireEvent.click(screen.getByRole("button", { name: "重试" }));
+
+    await waitFor(() => expect(screen.getByText("已完成真实流式圆桌。")).toBeInTheDocument());
+    expect(fetchSpy).toHaveBeenCalledTimes(2);
   });
 
   it("lets a user add a local preset that participates in recommendation", () => {

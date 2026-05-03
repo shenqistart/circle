@@ -1,4 +1,8 @@
 node_modules/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+*.pyc
 .omx/
 .DS_Store
 

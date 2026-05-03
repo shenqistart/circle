@@ -22,6 +22,7 @@ export function DiscussionView({ result }: DiscussionViewProps) {
           <h2>讨论记录</h2>
         </div>
       </div>
+      {result.rounds.length === 0 && <p className="empty-state">正在等待后端流式事件...</p>}
       {result.rounds.map((round) => (
         <div className="round" key={round.id}>
           <h3>{round.title}</h3>
@@ -36,7 +37,10 @@ export function DiscussionView({ result }: DiscussionViewProps) {
           ))}
         </div>
       ))}
-      <ModeratorSummaryView summary={result.moderatorSummary} />
+      {(result.moderatorSummary.consensus.length > 0 ||
+        result.moderatorSummary.disagreements.length > 0 ||
+        result.moderatorSummary.insights.length > 0 ||
+        result.moderatorSummary.actions.length > 0) && <ModeratorSummaryView summary={result.moderatorSummary} />}
     </section>
   );
 }

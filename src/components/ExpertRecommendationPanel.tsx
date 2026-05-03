@@ -6,8 +6,11 @@ type ExpertRecommendationPanelProps = {
   allExperts: ExpertPreset[];
   onToggleExpert: (expert: ExpertPreset) => void;
   onGenerate: () => void | Promise<void>;
+  onRetry: () => void | Promise<void>;
   isGenerating: boolean;
   generationMessage: string;
+  generationError: string;
+  canRetry: boolean;
 };
 
 const isSelected = (expert: ExpertPreset, selectedExperts: ExpertPreset[]) =>
@@ -19,8 +22,11 @@ export function ExpertRecommendationPanel({
   allExperts,
   onToggleExpert,
   onGenerate,
+  onRetry,
   isGenerating,
-  generationMessage
+  generationMessage,
+  generationError,
+  canRetry
 }: ExpertRecommendationPanelProps) {
   const hasEnoughExperts = selectedExperts.length >= 2;
   const canGenerate = hasEnoughExperts && !isGenerating;
@@ -39,6 +45,14 @@ export function ExpertRecommendationPanel({
 
       {!hasEnoughExperts && <p className="warning">至少选择 2 位专家后才能生成。</p>}
       {generationMessage && <p className="success">{generationMessage}</p>}
+      {generationError && (
+        <div className="error-banner" role="alert">
+          <p>{generationError}</p>
+          <button type="button" disabled={!canRetry || isGenerating} onClick={onRetry}>
+            重试
+          </button>
+        </div>
+      )}
 
       <div className="recommendation-list" aria-label="推荐专家">
         {matches.map((match) => (

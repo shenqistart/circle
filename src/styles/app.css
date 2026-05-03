@@ -125,6 +125,23 @@ button:disabled {
   font-weight: 700;
 }
 
+.error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid #da1e28;
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  color: #750e13;
+  background: #fff1f1;
+}
+
+.error-banner p {
+  margin: 0;
+  font-weight: 700;
+}
+
 .recommendation-list,
 .expert-list {
   display: grid;
