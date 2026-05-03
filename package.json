@@ -1,31 +1,19 @@
 {
-  "name": "roundtable-expert-catalog",
+  "name": "circle",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.9.0",
-  "type": "module",
   "scripts": {
-    "api": "uvicorn app.main:app --app-dir server --host 127.0.0.1 --port 8787 --reload",
-    "dev": "vite --host 127.0.0.1",
-    "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:api": "python3 -m pytest server/tests",
-    "test:watch": "vitest"
-  },
-  "dependencies": {
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "typescript": "^5.9.3"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "^6.9.1",
-    "@testing-library/react": "^16.3.0",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^4.3.4",
-    "jsdom": "^24.1.3",
-    "vite": "^5.4.21",
-    "vitest": "^3.2.4"
+    "api": "uv run --project server uvicorn app.main:app --app-dir server --host 127.0.0.1 --port 8787 --reload",
+    "dev": "pnpm --filter @circle/frontend dev",
+    "build": "pnpm --filter @circle/frontend build",
+    "typecheck": "pnpm --filter @circle/frontend typecheck",
+    "test": "pnpm --filter @circle/frontend test",
+    "test:api": "uv run --project server pytest server/tests",
+    "test:watch": "pnpm --filter @circle/frontend test:watch",
+    "graph:install": "uv venv .graphify-venv && uv pip install --python .graphify-venv/bin/python graphifyy && .graphify-venv/bin/graphify install --platform codex",
+    "graph:build": ".graphify-venv/bin/graphify update .",
+    "graph:update": ".graphify-venv/bin/graphify update .",
+    "graph:query": ".graphify-venv/bin/graphify query"
   }
 }

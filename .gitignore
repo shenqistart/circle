@@ -1,8 +1,10 @@
 node_modules/
+.graphify-venv/
 *.egg-info/
 __pycache__/
 .pytest_cache/
 *.pyc
+graphify-out/
 .omx/
 .DS_Store
 
@@ -10,3 +12,5 @@ dist/
 .env
 .env.*
 !.env.example
+
+docs/
