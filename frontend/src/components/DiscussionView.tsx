@@ -10,6 +10,11 @@ export function DiscussionView({ result }: DiscussionViewProps) {
     return (
       <section className="panel discussion-placeholder" aria-label="圆桌输出">
         <p>生成后会在这里出现多轮对话和主持人总结。</p>
+        <div className="placeholder-stack" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
       </section>
     );
   }

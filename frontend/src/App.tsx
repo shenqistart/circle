@@ -212,6 +212,26 @@ export function App() {
 
   return (
     <main className="app-shell">
+      <header className="app-header">
+        <div>
+          <p className="eyebrow">Circle</p>
+          <h1>AI 圆桌工作台</h1>
+        </div>
+        <div className="status-grid" aria-label="工作台状态">
+          <div>
+            <span>{allExperts.length}</span>
+            <p>专家总数</p>
+          </div>
+          <div>
+            <span>{localPresets.length}</span>
+            <p>本地 preset</p>
+          </div>
+          <div>
+            <span>{selectedExperts.length}</span>
+            <p>已选阵容</p>
+          </div>
+        </div>
+      </header>
       <div className="workspace">
         <div className="left-column">
           <QuestionComposer question={question} onQuestionChange={setQuestion} onRecommend={runRecommendation} />
