@@ -349,6 +349,51 @@ button:disabled {
   margin-bottom: 12px;
 }
 
+.field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-hint {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--subtle);
+  font-size: 11px;
+  line-height: 1;
+  cursor: help;
+}
+
+.field-hint:hover {
+  border-color: rgba(47, 214, 161, 0.62);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+}
+
+.advanced-fields {
+  margin: 12px 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 10px 12px 12px;
+}
+
+.advanced-fields summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.advanced-fields[open] summary {
+  margin-bottom: 12px;
+  color: var(--accent-strong);
+}
+
 .tag-line {
   display: flex;
   flex-wrap: wrap;

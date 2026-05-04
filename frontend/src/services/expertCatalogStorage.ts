@@ -80,13 +80,13 @@ export const validateLocalPresetInput = (
   const sourceType = asString(candidate.sourceType) || "local";
   const evidenceStatus = asString(candidate.evidenceStatus) || "user-authored-local";
 
-  if (!name) errors.push("name 必填");
-  if (!skillId) errors.push("skillId 必填");
-  if (domainTags.length === 0) errors.push("domainTags 至少需要 1 个标签");
-  if (domainTags.length > maxTags) errors.push(`domainTags 最多 ${maxTags} 个`);
-  if (!shortDescription) errors.push("shortDescription 必填");
-  if (!thinkingStyle) errors.push("thinkingStyle 必填");
-  if (!responseStyle) errors.push("responseStyle 必填");
+  if (!name) errors.push("名称必填");
+  if (!skillId) errors.push("Skill ID 必填");
+  if (domainTags.length === 0) errors.push("至少添加 1 个领域标签");
+  if (domainTags.length > maxTags) errors.push(`领域标签最多 ${maxTags} 个`);
+  if (!shortDescription) errors.push("一句话说明必填");
+  if (!thinkingStyle) errors.push("专家定位必填");
+  if (!responseStyle) errors.push("输出风格必填");
   if (sourceType !== "local") errors.push("只能导入或保存 local preset");
   if (!allowedEvidence.has(evidenceStatus)) errors.push("evidenceStatus 不合法");
 

@@ -10,7 +10,7 @@ describe("expert preset editor", () => {
     fireEvent.click(screen.getByRole("button", { name: "保存 preset" }));
 
     expect(onSave).not.toHaveBeenCalled();
-    expect(screen.getByText(/name 必填/)).toBeInTheDocument();
+    expect(screen.getByText(/名称必填/)).toBeInTheDocument();
   });
 
   it("normalizes a complete local preset before saving", () => {
@@ -18,7 +18,6 @@ describe("expert preset editor", () => {
     render(<ExpertPresetEditor existingPresets={[]} onSave={onSave} onCancelEdit={vi.fn()} />);
 
     fireEvent.change(screen.getByLabelText("名称"), { target: { value: "市场策略专家" } });
-    fireEvent.change(screen.getByLabelText("Skill ID"), { target: { value: "market-strategy-local" } });
     fireEvent.change(screen.getByLabelText("领域标签"), { target: { value: "市场,增长" } });
     fireEvent.change(screen.getByLabelText("简述"), { target: { value: "评估市场定位。" } });
     fireEvent.change(screen.getByLabelText("思考方式"), { target: { value: "先看用户和渠道。" } });
@@ -28,6 +27,7 @@ describe("expert preset editor", () => {
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
         name: "市场策略专家",
+        skillId: "市场策略专家",
         sourceType: "local",
         domainTags: ["市场", "增长"],
         evidenceStatus: "user-authored-local"
