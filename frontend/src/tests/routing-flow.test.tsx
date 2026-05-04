@@ -14,6 +14,11 @@ const streamFromText = (text: string) =>
     }
   });
 
+const eventStreamResponse = (text: string) =>
+  new Response(streamFromText(text), {
+    headers: { "Content-Type": "text/event-stream" }
+  });
+
 const sse = (event: unknown) => `event: roundtable\ndata: ${JSON.stringify(event)}\n\n`;
 
 describe("routing flow", () => {
@@ -29,9 +34,8 @@ describe("routing flow", () => {
     const finalResult = createMockRoundtable("AI 教育产品如何验证需求并控制风险？", builtInExperts.slice(0, 3));
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockResolvedValue({
-        ok: true,
-        body: streamFromText(
+      vi.fn().mockResolvedValue(
+        eventStreamResponse(
           [
             sse({ type: "run_started", runId: "1", question: finalResult.question, experts: [] }),
             sse({ type: "round_started", roundId: 1, title: "Round 1 · 初始立场" }),
@@ -39,7 +43,7 @@ describe("routing flow", () => {
             sse({ type: "final_result", result: finalResult })
           ].join("")
         )
-      })
+      )
     );
 
     render(<App />);
@@ -68,14 +72,8 @@ describe("routing flow", () => {
     const result = createMockRoundtable("AI 教育产品如何验证需求并控制风险？", builtInExperts.slice(0, 3));
     const fetchSpy = vi
       .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        body: streamFromText(sse({ type: "error", message: "provider unavailable", retryable: true }))
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        body: streamFromText(sse({ type: "final_result", result }))
-      });
+      .mockResolvedValueOnce(eventStreamResponse(sse({ type: "error", message: "provider unavailable", retryable: true })))
+      .mockResolvedValueOnce(eventStreamResponse(sse({ type: "final_result", result })));
     vi.stubGlobal("fetch", fetchSpy);
 
     render(<App />);
