@@ -91,6 +91,7 @@ export type RoundtableResult = {
   experts: ExpertPreset[];
   rounds: DiscussionRound[];
   moderatorSummary: ModeratorSummary;
+  moderatorSummaryStatus?: "idle" | "streaming" | "completed";
 };
 
 export type ExpertSummary = {
@@ -113,7 +114,7 @@ export type RoundtableStreamEvent =
   | { type: "expert_turn_delta"; roundId: number; expertId: string; delta: string }
   | { type: "expert_turn_completed"; turn: ExpertTurn }
   | { type: "moderator_summary_started" }
-  | { type: "moderator_summary_delta"; section?: keyof ModeratorSummary; delta: string }
+  | { type: "moderator_summary_delta"; section?: keyof ModeratorSummary; delta: string; appendToLast?: boolean }
   | { type: "moderator_summary_completed"; summary: ModeratorSummary }
   | { type: "final_result"; result: RoundtableResult }
   | { type: "error"; message: string; retryable: boolean };

@@ -2,7 +2,13 @@ from collections.abc import AsyncIterator
 import json
 from uuid import uuid4
 
-from .agents import RunnerAdapter, parse_moderator_summary
+from .agents import (
+    RunnerAdapter,
+    is_summary_heading_prefix,
+    parse_moderator_summary,
+    summary_item_from_line,
+    summary_section_from_heading,
+)
 from .schemas import (
     DiscussionRound,
     ErrorEvent,
@@ -90,9 +96,57 @@ class RoundtableService:
 
         yield ModeratorSummaryStartedEvent()
         summary_text = ""
+        line_buffer = ""
+        current_summary_section = None
+        current_item_sent_length = 0
+        current_item_started = False
         async for delta in self.runner.run_moderator_summary(question=request.question, experts=experts, rounds=rounds):
             summary_text += delta
-            yield ModeratorSummaryDeltaEvent(delta=delta)
+            line_buffer += delta
+            while "\n" in line_buffer:
+                line, line_buffer = line_buffer.split("\n", 1)
+                heading = summary_section_from_heading(line)
+                if heading:
+                    current_summary_section = heading
+                    current_item_sent_length = 0
+                    current_item_started = False
+                    continue
+                if current_summary_section:
+                    item = summary_item_from_line(line)
+                    piece = item[current_item_sent_length:] if item else ""
+                    if piece:
+                        yield ModeratorSummaryDeltaEvent(
+                            section=current_summary_section,
+                            delta=piece,
+                            appendToLast=current_item_started,
+                        )
+                    current_item_sent_length = 0
+                    current_item_started = False
+            heading = summary_section_from_heading(line_buffer)
+            if heading:
+                current_summary_section = heading
+                current_item_sent_length = 0
+                current_item_started = False
+            elif current_summary_section and not is_summary_heading_prefix(line_buffer):
+                item = summary_item_from_line(line_buffer)
+                piece = item[current_item_sent_length:] if item else ""
+                if piece:
+                    yield ModeratorSummaryDeltaEvent(
+                        section=current_summary_section,
+                        delta=piece,
+                        appendToLast=current_item_started,
+                    )
+                    current_item_sent_length = len(item)
+                    current_item_started = True
+        if line_buffer and current_summary_section:
+            item = summary_item_from_line(line_buffer)
+            piece = item[current_item_sent_length:] if item else ""
+            if piece:
+                yield ModeratorSummaryDeltaEvent(
+                    section=current_summary_section,
+                    delta=piece,
+                    appendToLast=current_item_started,
+                )
         summary = parse_moderator_summary(summary_text)
         yield ModeratorSummaryCompletedEvent(summary=summary)
 

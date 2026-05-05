@@ -29,15 +29,11 @@ class FakeRunner:
         experts: list[ExpertPreset],
         rounds: list[DiscussionRound],
     ) -> AsyncIterator[str]:
-        yield json.dumps(
-            {
-                "consensus": ["先定义目标，再分配专家视角。"],
-                "disagreements": ["分歧在速度、风险和体验权重。"],
-                "insights": ["流式圆桌应保留每位专家的独立上下文。"],
-                "actions": ["选择至少两位专家", "根据输出重试或调整问题"],
-            },
-            ensure_ascii=False,
-        )
+        yield "共识:\n- 先定义"
+        yield "目标，再分配专家视角。\n"
+        yield "分歧:\n- 分歧在速度、风险和体验权重。\n"
+        yield "洞察:\n- 流式圆桌应保留每位专家的独立上下文。\n"
+        yield "行动:\n- 选择至少两位专家\n- 根据输出重试或调整问题\n"
 
 
 class FailingRunner(FakeRunner):
@@ -113,6 +109,14 @@ def test_stream_roundtable_emits_ordered_events_and_final_result():
     assert event_types.count("round_started") == 2
     assert event_types.count("expert_turn_started") == 4
     assert event_types.count("expert_turn_completed") == 4
+    assert any(event["type"] == "moderator_summary_delta" and event["section"] == "consensus" for event in events)
+    assert any(
+        event["type"] == "moderator_summary_delta"
+        and event["section"] == "consensus"
+        and event["appendToLast"] is True
+        for event in events
+    )
+    assert any(event["type"] == "moderator_summary_delta" and event["section"] == "actions" for event in events)
     assert "moderator_summary_completed" in event_types
     assert event_types[-1] == "final_result"
 

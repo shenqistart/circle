@@ -19,21 +19,13 @@
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 400px;
   gap: 16px;
   align-items: start;
 }
 
-.left-column,
-.right-column,
 .catalog-layout {
   display: grid;
   gap: 16px;
-}
-
-.right-column {
-  position: sticky;
-  top: 16px;
 }
 
 .catalog-layout {
@@ -230,6 +222,7 @@ button:disabled {
 }
 
 .report-actions,
+.catalog-actions,
 .catalog-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -330,6 +323,26 @@ button:disabled {
   color: var(--accent-strong);
 }
 
+.manual-experts {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 10px 12px 12px;
+}
+
+.manual-experts summary {
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.manual-experts[open] summary {
+  margin-bottom: 12px;
+  color: var(--accent-strong);
+}
+
 .manual-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -420,6 +433,17 @@ button:disabled {
   color: var(--accent-strong);
 }
 
+.catalog-editor {
+  margin-bottom: 14px;
+}
+
+.embedded-editor {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.025);
+  padding: 14px;
+}
+
 .tag-line {
   display: flex;
   flex-wrap: wrap;
@@ -482,6 +506,35 @@ code {
   padding-top: 16px;
 }
 
+.discussion > .moderator-summary {
+  margin-top: 0;
+  border-top: 0;
+  padding-top: 0;
+}
+
+.summary-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.summary-title-row span {
+  border: 1px solid rgba(47, 214, 161, 0.28);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.roundtable-log {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -499,6 +552,10 @@ code {
   margin: 0;
   padding-left: 18px;
   color: var(--muted);
+}
+
+.summary-pending {
+  color: var(--subtle);
 }
 
 @media (max-width: 1100px) {

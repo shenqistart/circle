@@ -3,7 +3,19 @@ import json
 from typing import Protocol
 
 from .config import Settings
-from .schemas import DiscussionRound, ExpertPreset, ModeratorSummary, ResponseMode
+from .schemas import DiscussionRound, ExpertPreset, ModeratorSummary, ResponseMode, SummarySection
+
+
+SECTION_LABELS: dict[str, SummarySection] = {
+    "共识": "consensus",
+    "consensus": "consensus",
+    "分歧": "disagreements",
+    "disagreements": "disagreements",
+    "洞察": "insights",
+    "insights": "insights",
+    "行动": "actions",
+    "actions": "actions",
+}
 
 
 class RunnerAdapter(Protocol):
@@ -77,9 +89,17 @@ def build_moderator_instructions() -> str:
     return "\n".join(
         [
             "You are the moderator agent for a multi-expert roundtable.",
-            "Summarize the discussion into strict JSON with keys consensus, disagreements, insights, actions.",
-            "Each key must contain an array of Chinese strings.",
-            "Do not output markdown fences or extra commentary.",
+            "Summarize the discussion in Chinese using exactly these four sections: 共识, 分歧, 洞察, 行动.",
+            "Each section must contain 2-4 short bullet lines.",
+            "Use this exact plain text format, without markdown fences or extra commentary:",
+            "共识:",
+            "- ...",
+            "分歧:",
+            "- ...",
+            "洞察:",
+            "- ...",
+            "行动:",
+            "- ...",
         ]
     )
 
@@ -97,17 +117,60 @@ def build_moderator_prompt(question: str, experts: list[ExpertPreset], rounds: l
             f"Experts: {expert_names}",
             "Discussion turns:",
             turns,
-            "Return JSON only.",
+            "Return the four-section bullet summary only.",
         ]
     )
+
+
+def summary_section_from_heading(line: str) -> SummarySection | None:
+    normalized = line.strip().lstrip("#").strip().rstrip(":：").lower()
+    return SECTION_LABELS.get(normalized)
+
+
+def is_summary_heading_prefix(line: str) -> bool:
+    normalized = line.strip().lstrip("#").strip().rstrip(":：").lower()
+    return bool(normalized) and any(label.startswith(normalized) for label in SECTION_LABELS)
+
+
+def summary_item_from_line(line: str) -> str:
+    stripped = line.strip()
+    if not stripped:
+        return ""
+    for prefix in ("- ", "* ", "• "):
+        if stripped.startswith(prefix):
+            return stripped.removeprefix(prefix).strip()
+    if len(stripped) > 2 and stripped[0].isdigit() and stripped[1] in (".", "、"):
+        return stripped[2:].strip()
+    return stripped
+
+
+def parse_moderator_summary_sections(text: str) -> ModeratorSummary:
+    summary = ModeratorSummary()
+    current_section: SummarySection | None = None
+    for line in text.splitlines():
+        heading = summary_section_from_heading(line)
+        if heading:
+            current_section = heading
+            continue
+        if current_section:
+            item = summary_item_from_line(line)
+            if item:
+                getattr(summary, current_section).append(item)
+    return summary
 
 
 def parse_moderator_summary(text: str) -> ModeratorSummary:
     stripped = text.strip()
     if stripped.startswith("```"):
         stripped = stripped.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-    payload = json.loads(stripped)
-    return ModeratorSummary.model_validate(payload)
+    try:
+        payload = json.loads(stripped)
+        return ModeratorSummary.model_validate(payload)
+    except json.JSONDecodeError:
+        summary = parse_moderator_summary_sections(stripped)
+        if any((summary.consensus, summary.disagreements, summary.insights, summary.actions)):
+            return summary
+        raise
 
 
 class AgentsSdkRunner:

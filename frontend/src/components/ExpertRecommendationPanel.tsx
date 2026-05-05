@@ -77,20 +77,23 @@ export function ExpertRecommendationPanel({
         ))}
       </div>
 
-      <div className="manual-grid" aria-label="手动选择专家">
-        {allExperts
-          .filter((expert) => expert.enabled)
-          .map((expert) => (
-            <label key={expert.id}>
-              <input
-                type="checkbox"
-                checked={isSelected(expert, selectedExperts)}
-                onChange={() => onToggleExpert(expert)}
-              />
-              <span>{expert.name}</span>
-            </label>
-          ))}
-      </div>
+      <details className="manual-experts">
+        <summary>更多专家</summary>
+        <div className="manual-grid" aria-label="手动选择专家">
+          {allExperts
+            .filter((expert) => expert.enabled)
+            .map((expert) => (
+              <label key={expert.id}>
+                <input
+                  type="checkbox"
+                  checked={isSelected(expert, selectedExperts)}
+                  onChange={() => onToggleExpert(expert)}
+                />
+                <span>{expert.name}</span>
+              </label>
+            ))}
+        </div>
+      </details>
     </section>
   );
 }

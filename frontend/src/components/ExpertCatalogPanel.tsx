@@ -1,12 +1,18 @@
 import type { ExpertPreset } from "../domain/types";
 import type { ReactNode } from "react";
 import { useState } from "react";
+import { ExpertPresetEditor } from "./ExpertPresetEditor";
 
 type ExpertCatalogPanelProps = {
   builtInExperts: ExpertPreset[];
   localPresets: ExpertPreset[];
+  existingPresets: ExpertPreset[];
+  editingPreset?: ExpertPreset | null;
   onCopyBuiltIn: (expert: ExpertPreset) => void;
   onEditLocal: (expert: ExpertPreset) => void;
+  onNewLocalPreset: () => void;
+  onSave: (preset: ExpertPreset) => void;
+  onCancelEdit: () => void;
   onDeleteLocal: (expert: ExpertPreset) => void;
   onToggleLocal: (expert: ExpertPreset) => void;
   exportText: string;
@@ -44,8 +50,13 @@ function ExpertRow({
 export function ExpertCatalogPanel({
   builtInExperts,
   localPresets,
+  existingPresets,
+  editingPreset,
   onCopyBuiltIn,
   onEditLocal,
+  onNewLocalPreset,
+  onSave,
+  onCancelEdit,
   onDeleteLocal,
   onToggleLocal,
   exportText,
@@ -56,6 +67,33 @@ export function ExpertCatalogPanel({
   onImport
 }: ExpertCatalogPanelProps) {
   const [activeTab, setActiveTab] = useState<"built-in" | "local">("built-in");
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+
+  const openLocalEditor = (expert?: ExpertPreset) => {
+    setActiveTab("local");
+    setIsEditorOpen(true);
+    if (expert) {
+      onEditLocal(expert);
+    } else {
+      onNewLocalPreset();
+    }
+  };
+
+  const copyBuiltIn = (expert: ExpertPreset) => {
+    setActiveTab("local");
+    setIsEditorOpen(true);
+    onCopyBuiltIn(expert);
+  };
+
+  const savePreset = (preset: ExpertPreset) => {
+    onSave(preset);
+    setIsEditorOpen(false);
+  };
+
+  const cancelEdit = () => {
+    onCancelEdit();
+    setIsEditorOpen(false);
+  };
 
   return (
     <section className="panel catalog-layout" aria-label="专家目录">
@@ -102,7 +140,7 @@ export function ExpertCatalogPanel({
                 expert={expert}
                 key={expert.id}
                 actions={
-                  <button type="button" onClick={() => onCopyBuiltIn(expert)}>
+                  <button type="button" onClick={() => copyBuiltIn(expert)}>
                     复制为本地
                   </button>
                 }
@@ -119,10 +157,26 @@ export function ExpertCatalogPanel({
               <p className="eyebrow">Local presets</p>
               <h2>本地目录</h2>
             </div>
-            <button type="button" onClick={onExport}>
-              导出 JSON
-            </button>
+            <div className="catalog-actions">
+              <button type="button" onClick={() => openLocalEditor()}>
+                新增 preset
+              </button>
+              <button type="button" onClick={onExport}>
+                导出 JSON
+              </button>
+            </div>
           </div>
+          {isEditorOpen && (
+            <div className="catalog-editor">
+              <ExpertPresetEditor
+                existingPresets={existingPresets}
+                editingPreset={editingPreset}
+                onSave={savePreset}
+                onCancelEdit={cancelEdit}
+                embedded
+              />
+            </div>
+          )}
           <div className="expert-list">
             {localPresets.length === 0 && <p className="empty-state">还没有本地 preset。</p>}
             {localPresets.map((expert) => (
@@ -134,7 +188,7 @@ export function ExpertCatalogPanel({
                     <button type="button" onClick={() => onToggleLocal(expert)}>
                       {expert.enabled ? "禁用" : "启用"}
                     </button>
-                    <button type="button" onClick={() => onEditLocal(expert)}>
+                    <button type="button" onClick={() => openLocalEditor(expert)}>
                       编辑
                     </button>
                     <button type="button" onClick={() => onDeleteLocal(expert)}>

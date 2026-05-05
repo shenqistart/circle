@@ -20,6 +20,7 @@ type ExpertPresetEditorProps = {
   editingPreset?: ExpertPreset | null;
   onSave: (preset: ExpertPreset) => void;
   onCancelEdit: () => void;
+  embedded?: boolean;
 };
 
 const emptyDraft: Draft = {
@@ -62,7 +63,8 @@ export function ExpertPresetEditor({
   existingPresets,
   editingPreset,
   onSave,
-  onCancelEdit
+  onCancelEdit,
+  embedded = false
 }: ExpertPresetEditorProps) {
   const [draft, setDraft] = useState<Draft>(() => toDraft(editingPreset));
   const [message, setMessage] = useState("");
@@ -98,17 +100,15 @@ export function ExpertPresetEditor({
   };
 
   return (
-    <section className="panel" aria-labelledby="editor-title">
+    <section className={embedded ? "embedded-editor" : "panel"} aria-labelledby="editor-title">
       <div className="section-heading">
         <div>
           <p className="eyebrow">本地专家</p>
           <h2 id="editor-title">{editingPreset ? "编辑 preset" : "新增 preset"}</h2>
         </div>
-        {editingPreset && (
-          <button type="button" onClick={onCancelEdit}>
-            取消
-          </button>
-        )}
+        <button type="button" onClick={onCancelEdit}>
+          取消
+        </button>
       </div>
 
       <div className="form-grid">

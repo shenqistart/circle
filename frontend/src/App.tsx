@@ -1,6 +1,5 @@
 import { useMemo, useState } from "react";
 import { ExpertCatalogPanel } from "./components/ExpertCatalogPanel";
-import { ExpertPresetEditor } from "./components/ExpertPresetEditor";
 import { ExpertRecommendationPanel } from "./components/ExpertRecommendationPanel";
 import { DiscussionView } from "./components/DiscussionView";
 import { QuestionComposer } from "./components/QuestionComposer";
@@ -52,14 +51,45 @@ const appendTurnDelta = (
       : round
   );
 
+const appendSummaryDelta = (
+  summary: ModeratorSummary,
+  event: Extract<RoundtableStreamEvent, { type: "moderator_summary_delta" }>
+): ModeratorSummary => {
+  if (!event.section) {
+    const currentDraft =
+      summary.insights.find((item) => item.startsWith("主持人生成中：")) ?? "主持人生成中：";
+    return {
+      ...summary,
+      insights: [
+        ...summary.insights.filter((item) => !item.startsWith("主持人生成中：")),
+        `${currentDraft}${event.delta}`
+      ]
+    };
+  }
+  const item = event.appendToLast ? event.delta : event.delta.trim();
+  if (!item) return summary;
+  if (event.appendToLast && summary[event.section].length > 0) {
+    const items = [...summary[event.section]];
+    items[items.length - 1] = `${items[items.length - 1]}${item}`;
+    return { ...summary, [event.section]: items };
+  }
+  return { ...summary, [event.section]: [...summary[event.section], item] };
+};
+
 const applyStreamEvent = (
   current: RoundtableResult | null,
   event: RoundtableStreamEvent,
   question: string,
   experts: ExpertPreset[]
 ): RoundtableResult => {
-  if (event.type === "final_result") return event.result;
-  const base = current ?? { question, experts, rounds: [], moderatorSummary: emptySummary() };
+  if (event.type === "final_result") return { ...event.result, moderatorSummaryStatus: "completed" };
+  const base = current ?? {
+    question,
+    experts,
+    rounds: [],
+    moderatorSummary: emptySummary(),
+    moderatorSummaryStatus: "idle"
+  };
   if (event.type === "round_started") {
     return { ...base, rounds: ensureRound(base.rounds, event.roundId, event.title) };
   }
@@ -80,21 +110,18 @@ const applyStreamEvent = (
   if (event.type === "expert_turn_completed") {
     return { ...base, rounds: upsertTurn(base.rounds, event.turn) };
   }
+  if (event.type === "moderator_summary_started") {
+    return { ...base, moderatorSummaryStatus: "streaming" };
+  }
   if (event.type === "moderator_summary_delta") {
-    const currentDraft = base.moderatorSummary.insights.find((item) => item.startsWith("主持人生成中：")) ?? "主持人生成中：";
     return {
       ...base,
-      moderatorSummary: {
-        ...base.moderatorSummary,
-        insights: [
-          ...base.moderatorSummary.insights.filter((item) => !item.startsWith("主持人生成中：")),
-          `${currentDraft}${event.delta}`
-        ]
-      }
+      moderatorSummary: appendSummaryDelta(base.moderatorSummary, event),
+      moderatorSummaryStatus: "streaming"
     };
   }
   if (event.type === "moderator_summary_completed") {
-    return { ...base, moderatorSummary: event.summary };
+    return { ...base, moderatorSummary: event.summary, moderatorSummaryStatus: "completed" };
   }
   return base;
 };
@@ -152,7 +179,7 @@ export function App() {
           setResult((current) => applyStreamEvent(current, event, question, selectedExperts));
         }
       });
-      setResult(finalResult);
+      setResult({ ...finalResult, moderatorSummaryStatus: "completed" });
       setGenerationStatus("succeeded");
       setGenerationMessage("已完成真实流式圆桌。");
     } catch (error) {
@@ -233,36 +260,31 @@ export function App() {
         </div>
       </header>
       <div className="workspace">
-        <div className="left-column">
-          <QuestionComposer question={question} onQuestionChange={setQuestion} onRecommend={runRecommendation} />
-          <ExpertRecommendationPanel
-            matches={matches}
-            selectedExperts={selectedExperts}
-            allExperts={allExperts}
-            onToggleExpert={toggleExpert}
-            onGenerate={generateRoundtable}
-            onRetry={generateRoundtable}
-            isGenerating={generationStatus === "streaming"}
-            generationMessage={generationMessage}
-            generationError={generationError}
-            canRetry={generationStatus === "failed"}
-          />
-          <DiscussionView result={result} />
-        </div>
-        <aside className="right-column">
-          <ExpertPresetEditor
-            existingPresets={localPresets}
-            editingPreset={editingPreset}
-            onSave={savePreset}
-            onCancelEdit={() => setEditingPreset(null)}
-          />
-        </aside>
+        <QuestionComposer question={question} onQuestionChange={setQuestion} onRecommend={runRecommendation} />
+        <ExpertRecommendationPanel
+          matches={matches}
+          selectedExperts={selectedExperts}
+          allExperts={allExperts}
+          onToggleExpert={toggleExpert}
+          onGenerate={generateRoundtable}
+          onRetry={generateRoundtable}
+          isGenerating={generationStatus === "streaming"}
+          generationMessage={generationMessage}
+          generationError={generationError}
+          canRetry={generationStatus === "failed"}
+        />
+        <DiscussionView result={result} />
       </div>
       <ExpertCatalogPanel
         builtInExperts={builtInExperts}
         localPresets={localPresets}
+        existingPresets={localPresets}
+        editingPreset={editingPreset}
         onCopyBuiltIn={copyBuiltIn}
         onEditLocal={setEditingPreset}
+        onNewLocalPreset={() => setEditingPreset(null)}
+        onSave={savePreset}
+        onCancelEdit={() => setEditingPreset(null)}
         onDeleteLocal={deleteLocal}
         onToggleLocal={toggleLocal}
         exportText={exportText}

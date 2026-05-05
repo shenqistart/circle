@@ -148,6 +148,7 @@ class ModeratorSummaryDeltaEvent(StreamEvent):
     type: Literal["moderator_summary_delta"] = "moderator_summary_delta"
     section: SummarySection | None = None
     delta: str
+    appendToLast: bool = False
 
 
 class ModeratorSummaryCompletedEvent(StreamEvent):

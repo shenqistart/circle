@@ -40,6 +40,8 @@ describe("routing flow", () => {
             sse({ type: "run_started", runId: "1", question: finalResult.question, experts: [] }),
             sse({ type: "round_started", roundId: 1, title: "Round 1 · 初始立场" }),
             sse({ type: "expert_turn_completed", turn: finalResult.rounds[0].turns[0] }),
+            sse({ type: "moderator_summary_started" }),
+            sse({ type: "moderator_summary_delta", section: "consensus", delta: finalResult.moderatorSummary.consensus[0] }),
             sse({ type: "final_result", result: finalResult })
           ].join("")
         )
@@ -66,9 +68,12 @@ describe("routing flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "生成圆桌" }));
 
     await waitFor(() => expect(screen.getByText("Round 1 · 初始立场")).toBeInTheDocument());
-    expect(screen.getByText("主持人总结")).toBeInTheDocument();
+    expect(screen.getByText(finalResult.moderatorSummary.consensus[0])).toBeInTheDocument();
+    const moderatorSummary = screen.getByText("主持人总结");
+    const discussionLog = screen.getByText("讨论记录");
+    expect(moderatorSummary.compareDocumentPosition(discussionLog)).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     expect(screen.getByRole("button", { name: "导出 MD" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "打印 / 另存 PDF" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "下载 PDF" })).toBeInTheDocument();
     expect(screen.getByText("已完成真实流式圆桌。")).toBeInTheDocument();
   });
 
@@ -97,6 +102,13 @@ describe("routing flow", () => {
 
   it("lets a user add a local preset that participates in recommendation", () => {
     render(<App />);
+
+    expect(screen.queryByLabelText("名称")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "本地目录" }));
+    expect(screen.getByRole("button", { name: "新增 preset" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "新增 preset" }));
+
     fireEvent.change(screen.getByLabelText("名称"), { target: { value: "增长实验专家" } });
     fireEvent.change(screen.getByLabelText("Skill ID"), { target: { value: "growth-experiment-local" } });
     fireEvent.change(screen.getByLabelText("领域标签"), { target: { value: "增长,实验,转化" } });
@@ -113,6 +125,18 @@ describe("routing flow", () => {
     expect(screen.getByLabelText("推荐专家")).toHaveTextContent("增长实验专家");
   });
 
+  it("keeps manual expert selection collapsed until the user asks for more experts", () => {
+    render(<App />);
+
+    const moreExperts = screen.getByText("更多专家");
+    expect(moreExperts.closest("details")).not.toHaveAttribute("open");
+
+    fireEvent.click(moreExperts);
+
+    expect(moreExperts.closest("details")).toHaveAttribute("open");
+    expect(screen.getByLabelText("手动选择专家")).toHaveTextContent("Karpathy");
+  });
+
   it("switches the expert catalog between built-in and local tabs", () => {
     render(<App />);
 
@@ -123,6 +147,7 @@ describe("routing flow", () => {
     fireEvent.click(screen.getByRole("tab", { name: "本地目录" }));
 
     expect(screen.getByRole("tab", { name: "本地目录", selected: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "新增 preset" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "导出 JSON" })).toBeInTheDocument();
     expect(screen.getByLabelText("导入 JSON")).toBeInTheDocument();
     expect(screen.getByText("还没有本地 preset。")).toBeInTheDocument();
