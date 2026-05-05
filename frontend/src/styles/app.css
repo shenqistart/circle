@@ -37,7 +37,6 @@
 }
 
 .catalog-layout {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   margin-top: 16px;
 }
 
@@ -225,9 +224,36 @@ button:disabled {
 }
 
 .empty-state,
-.discussion-placeholder p {
+.discussion .empty-state {
   margin-bottom: 0;
   color: var(--muted);
+}
+
+.report-actions,
+.catalog-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.catalog-tabs {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.catalog-tabs button {
+  min-height: 32px;
+  border-color: transparent;
+  padding: 6px 10px;
+  color: var(--muted);
+}
+
+.catalog-tabs button[aria-selected="true"] {
+  border-color: rgba(47, 214, 161, 0.44);
+  color: var(--accent-strong);
+  background: var(--accent-soft);
 }
 
 .error-banner {
@@ -475,23 +501,9 @@ code {
   color: var(--muted);
 }
 
-.placeholder-stack {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.placeholder-stack span {
-  height: 42px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.035), rgba(47, 214, 161, 0.07), rgba(255, 255, 255, 0.035));
-}
-
 @media (max-width: 1100px) {
   .app-header,
-  .workspace,
-  .catalog-layout {
+  .workspace {
     grid-template-columns: 1fr;
   }
 

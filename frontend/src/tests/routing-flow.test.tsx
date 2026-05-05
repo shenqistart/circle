@@ -48,6 +48,8 @@ describe("routing flow", () => {
 
     render(<App />);
 
+    expect(screen.queryByText("生成后会在这里出现多轮对话和主持人总结。")).not.toBeInTheDocument();
+
     fireEvent.change(screen.getByLabelText("输入要讨论的问题"), {
       target: { value: "AI 教育产品如何验证需求并控制风险？" }
     });
@@ -65,6 +67,8 @@ describe("routing flow", () => {
 
     await waitFor(() => expect(screen.getByText("Round 1 · 初始立场")).toBeInTheDocument());
     expect(screen.getByText("主持人总结")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出 MD" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "打印 / 另存 PDF" })).toBeInTheDocument();
     expect(screen.getByText("已完成真实流式圆桌。")).toBeInTheDocument();
   });
 
@@ -107,5 +111,20 @@ describe("routing flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "推荐 Top 3" }));
 
     expect(screen.getByLabelText("推荐专家")).toHaveTextContent("增长实验专家");
+  });
+
+  it("switches the expert catalog between built-in and local tabs", () => {
+    render(<App />);
+
+    expect(screen.getByRole("tab", { name: "内置目录", selected: true })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: `${builtInExperts.length} 个专家` })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "导出 JSON" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("tab", { name: "本地目录" }));
+
+    expect(screen.getByRole("tab", { name: "本地目录", selected: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "导出 JSON" })).toBeInTheDocument();
+    expect(screen.getByLabelText("导入 JSON")).toBeInTheDocument();
+    expect(screen.getByText("还没有本地 preset。")).toBeInTheDocument();
   });
 });
