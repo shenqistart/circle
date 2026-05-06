@@ -34,4 +34,53 @@ describe("expert preset editor", () => {
       })
     );
   });
+
+  it("renders import draft notice and preserves hidden provenance on save", () => {
+    const onSave = vi.fn();
+    render(
+      <ExpertPresetEditor
+        existingPresets={[]}
+        editingPreset={{
+          id: "local-product-coach-skill",
+          name: "Product Coach",
+          shortLabel: "Product Coach",
+          source: "local",
+          evidenceRefs: ["SKILL.md", "README.md"],
+          provenanceStatus: "local-derived",
+          thinkingStyle: "Focuses on product validation.",
+          mentalModels: [],
+          decisionHeuristics: [],
+          antiPatterns: [],
+          honestyBoundary: "Drafted from local docs; not installed or executed.",
+          responseStyle: "Structured and direct.",
+          skillId: "product-coach-skill",
+          domainTags: ["产品", "本地 skill"],
+          shortDescription: "Product strategy coach.",
+          sourceType: "local",
+          evidenceStatus: "user-authored-local",
+          evidenceNote: "auto-drafted-from-local-skill-archive",
+          enabled: true
+        }}
+        draftNotice="本地自动草拟，保存前请检查。"
+        basePresetMetadata={{
+          evidenceRefs: ["SKILL.md", "README.md"],
+          honestyBoundary: "Drafted from local docs; not installed or executed.",
+          evidenceNote: "auto-drafted-from-local-skill-archive"
+        }}
+        onSave={onSave}
+        onCancelEdit={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("status")).toHaveTextContent("本地自动草拟");
+    fireEvent.click(screen.getByRole("button", { name: "保存 preset" }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evidenceRefs: ["SKILL.md", "README.md"],
+        honestyBoundary: "Drafted from local docs; not installed or executed.",
+        evidenceNote: "auto-drafted-from-local-skill-archive"
+      })
+    );
+  });
 });

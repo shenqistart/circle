@@ -13,6 +13,7 @@
   "dependencies": {
     "@fontsource/noto-sans-sc": "^5.2.9",
     "@microsoft/fetch-event-source": "^2.0.1",
+    "fflate": "^0.8.2",
     "pdfmake": "^0.2.20",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
@@ -24,9 +25,9 @@
     "@types/pdfmake": "^0.2.11",
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^4.3.4",
+    "@vitejs/plugin-react": "^5.2.0",
     "jsdom": "^24.1.3",
-    "vite": "^5.4.21",
-    "vitest": "^3.2.4"
+    "vite": "^6.4.2",
+    "vitest": "^4.1.5"
   }
 }

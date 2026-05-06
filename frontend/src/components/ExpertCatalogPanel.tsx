@@ -15,10 +15,14 @@ type ExpertCatalogPanelProps = {
   onCancelEdit: () => void;
   onDeleteLocal: (expert: ExpertPreset) => void;
   onToggleLocal: (expert: ExpertPreset) => void;
+  draftNotice?: string;
+  draftMetadata?: Partial<ExpertPreset> | null;
   exportText: string;
   importText: string;
   importMessage: string;
+  isImportingArchive?: boolean;
   onExport: () => void;
+  onImportSkillArchive: (file: File) => Promise<boolean>;
   onImportTextChange: (value: string) => void;
   onImport: () => void;
 };
@@ -59,10 +63,14 @@ export function ExpertCatalogPanel({
   onCancelEdit,
   onDeleteLocal,
   onToggleLocal,
+  draftNotice,
+  draftMetadata,
   exportText,
   importText,
   importMessage,
+  isImportingArchive = false,
   onExport,
+  onImportSkillArchive,
   onImportTextChange,
   onImport
 }: ExpertCatalogPanelProps) {
@@ -93,6 +101,15 @@ export function ExpertCatalogPanel({
   const cancelEdit = () => {
     onCancelEdit();
     setIsEditorOpen(false);
+  };
+
+  const importSkillArchive = async (file?: File) => {
+    if (!file) return;
+    setActiveTab("local");
+    const shouldOpenEditor = await onImportSkillArchive(file);
+    if (shouldOpenEditor) {
+      setIsEditorOpen(true);
+    }
   };
 
   return (
@@ -161,6 +178,19 @@ export function ExpertCatalogPanel({
               <button type="button" onClick={() => openLocalEditor()}>
                 新增 preset
               </button>
+              <label className="file-action">
+                <input
+                  aria-label="上传 skill 压缩包"
+                  type="file"
+                  accept=".zip,application/zip"
+                  disabled={isImportingArchive}
+                  onChange={(event) => {
+                    void importSkillArchive(event.target.files?.[0]);
+                    event.currentTarget.value = "";
+                  }}
+                />
+                {isImportingArchive ? "解析中..." : "上传 skill .zip"}
+              </label>
               <button type="button" onClick={onExport}>
                 导出 JSON
               </button>
@@ -171,6 +201,8 @@ export function ExpertCatalogPanel({
               <ExpertPresetEditor
                 existingPresets={existingPresets}
                 editingPreset={editingPreset}
+                draftNotice={draftNotice}
+                basePresetMetadata={draftMetadata}
                 onSave={savePreset}
                 onCancelEdit={cancelEdit}
                 embedded

@@ -22,6 +22,7 @@ import {
   saveLocalPresets
 } from "./services/expertCatalogStorage";
 import { streamRoundtable } from "./services/roundtableApi";
+import { createSkillArchivePresetDraft } from "./services/skillArchivePresetDraft";
 
 const starterQuestion = "我想做一个 AI 教育产品，如何验证需求、控制风险并设计第一版？";
 const emptySummary = (): ModeratorSummary => ({ consensus: [], disagreements: [], insights: [], actions: [] });
@@ -136,6 +137,9 @@ export function App() {
   const [exportText, setExportText] = useState("");
   const [importText, setImportText] = useState("");
   const [importMessage, setImportMessage] = useState("");
+  const [archiveDraftNotice, setArchiveDraftNotice] = useState("");
+  const [archiveDraftMetadata, setArchiveDraftMetadata] = useState<Partial<ExpertPreset> | null>(null);
+  const [isImportingArchive, setIsImportingArchive] = useState(false);
   const [generationMessage, setGenerationMessage] = useState("");
   const [generationStatus, setGenerationStatus] = useState<GenerationStatus>("idle");
   const [generationError, setGenerationError] = useState("");
@@ -195,9 +199,13 @@ export function App() {
       : [...localPresets, preset];
     refreshLocalPresets(next);
     setEditingPreset(null);
+    setArchiveDraftNotice("");
+    setArchiveDraftMetadata(null);
   };
 
   const copyBuiltIn = (expert: ExpertPreset) => {
+    setArchiveDraftNotice("");
+    setArchiveDraftMetadata(null);
     setEditingPreset({
       ...expert,
       id: `local-${expert.id}`,
@@ -209,6 +217,12 @@ export function App() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
+  };
+
+  const editLocal = (expert: ExpertPreset) => {
+    setArchiveDraftNotice("");
+    setArchiveDraftMetadata(null);
+    setEditingPreset(expert);
   };
 
   const deleteLocal = (expert: ExpertPreset) => {
@@ -224,6 +238,24 @@ export function App() {
 
   const exportCatalog = () => {
     setExportText(exportLocalPresets(localPresets));
+  };
+
+  const importSkillArchive = async (file: File): Promise<boolean> => {
+    setIsImportingArchive(true);
+    setImportMessage("");
+    try {
+      const draft = await createSkillArchivePresetDraft(file);
+      setEditingPreset(draft.preset);
+      setArchiveDraftNotice(draft.notice);
+      setArchiveDraftMetadata(draft.preset);
+      setImportMessage("已生成本地 preset 预览，请检查后保存");
+      return true;
+    } catch (error) {
+      setImportMessage(error instanceof Error ? error.message : "解析 skill 压缩包失败");
+      return false;
+    } finally {
+      setIsImportingArchive(false);
+    }
   };
 
   const importCatalog = () => {
@@ -281,16 +313,28 @@ export function App() {
         existingPresets={localPresets}
         editingPreset={editingPreset}
         onCopyBuiltIn={copyBuiltIn}
-        onEditLocal={setEditingPreset}
-        onNewLocalPreset={() => setEditingPreset(null)}
+        onEditLocal={editLocal}
+        onNewLocalPreset={() => {
+          setEditingPreset(null);
+          setArchiveDraftNotice("");
+          setArchiveDraftMetadata(null);
+        }}
         onSave={savePreset}
-        onCancelEdit={() => setEditingPreset(null)}
+        onCancelEdit={() => {
+          setEditingPreset(null);
+          setArchiveDraftNotice("");
+          setArchiveDraftMetadata(null);
+        }}
         onDeleteLocal={deleteLocal}
         onToggleLocal={toggleLocal}
+        draftNotice={archiveDraftNotice}
+        draftMetadata={archiveDraftMetadata}
         exportText={exportText}
         importText={importText}
         importMessage={importMessage}
+        isImportingArchive={isImportingArchive}
         onExport={exportCatalog}
+        onImportSkillArchive={importSkillArchive}
         onImportTextChange={setImportText}
         onImport={importCatalog}
       />

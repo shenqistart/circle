@@ -183,6 +183,33 @@ button:disabled {
   opacity: 0.48;
 }
 
+.file-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  font-weight: 650;
+}
+
+.file-action:hover {
+  border-color: rgba(47, 214, 161, 0.62);
+  color: var(--accent-strong);
+  background: rgba(47, 214, 161, 0.08);
+}
+
+.file-action input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
 .primary-action {
   border-color: rgba(47, 214, 161, 0.68);
   background: linear-gradient(180deg, rgba(47, 214, 161, 0.26), rgba(47, 214, 161, 0.12));
@@ -213,6 +240,17 @@ button:disabled {
 .success {
   color: var(--success);
   font-weight: 700;
+}
+
+.draft-notice {
+  border: 1px solid rgba(47, 214, 161, 0.34);
+  border-radius: 6px;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  font-weight: 700;
+  line-height: 1.45;
 }
 
 .empty-state,

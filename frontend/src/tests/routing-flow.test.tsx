@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "../App";
 import { builtInExperts } from "../data/expertPresets";
 import { createMockRoundtable } from "../domain/mockRoundtableGenerator";
+import { zipFile } from "./zipTestUtils";
 
 const encoder = new TextEncoder();
 
@@ -20,6 +21,24 @@ const eventStreamResponse = (text: string) =>
   });
 
 const sse = (event: unknown) => `event: roundtable\ndata: ${JSON.stringify(event)}\n\n`;
+
+const skillZip = () =>
+  zipFile({
+    "demo/SKILL.md": `---
+name: Growth Coach
+description: Helps teams design growth experiments.
+---
+
+<Purpose>
+Help teams improve growth experiments and conversion decisions.
+</Purpose>
+
+<Use_When>
+Use for growth, marketing, and experiment design questions.
+</Use_When>
+`,
+    "demo/README.md": "# Growth Coach\n\nA growth and experiment design skill."
+  }, "growth-coach.zip");
 
 describe("routing flow", () => {
   beforeEach(() => {
@@ -123,6 +142,42 @@ describe("routing flow", () => {
     fireEvent.click(screen.getByRole("button", { name: "推荐 Top 3" }));
 
     expect(screen.getByLabelText("推荐专家")).toHaveTextContent("增长实验专家");
+  });
+
+  it("lets a user upload a skill zip, review the draft, and save it for recommendation", async () => {
+    const fetchSpy = vi.fn();
+    vi.stubGlobal("fetch", fetchSpy);
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "本地目录" }));
+    fireEvent.change(screen.getByLabelText("上传 skill 压缩包"), { target: { files: [skillZip()] } });
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("本地自动草拟"));
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(screen.getByText("还没有本地 preset。")).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "保存 preset" }));
+    await waitFor(() => expect(screen.queryByText("还没有本地 preset。")).not.toBeInTheDocument());
+    expect(screen.getAllByText("Growth Coach").length).toBeGreaterThan(0);
+
+    fireEvent.change(screen.getByLabelText("输入要讨论的问题"), {
+      target: { value: "本地 skill growth experiment conversion 怎么设计？" }
+    });
+    fireEvent.click(screen.getByRole("button", { name: "推荐 Top 3" }));
+
+    expect(screen.getByLabelText("推荐专家")).toHaveTextContent("Growth Coach");
+  });
+
+  it("does not save an uploaded skill draft when the user cancels preview", async () => {
+    render(<App />);
+
+    fireEvent.click(screen.getByRole("tab", { name: "本地目录" }));
+    fireEvent.change(screen.getByLabelText("上传 skill 压缩包"), { target: { files: [skillZip()] } });
+
+    await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("本地自动草拟"));
+    fireEvent.click(screen.getByRole("button", { name: "取消" }));
+
+    expect(screen.getByText("还没有本地 preset。")).toBeInTheDocument();
   });
 
   it("keeps manual expert selection collapsed until the user asks for more experts", () => {

@@ -1,4 +1,4 @@
-import type { Content, TDocumentDefinitions } from "pdfmake/interfaces";
+import type { Content, TableCell, TDocumentDefinitions } from "pdfmake/interfaces";
 import type { ModeratorSummary, RoundtableResult } from "./types";
 import { reportFileName } from "./roundtableReport";
 
@@ -67,6 +67,18 @@ export const buildRoundtablePdfDefinition = (
     { text: round.title, style: "roundTitle" },
     ...round.turns.map((turn) => turnCard(turn.expertName, turn.content))
   ]);
+  const expertRows: TableCell[][] = [
+    [
+      { text: "专家", style: "tableHeader", margin: [6, 5, 6, 5] },
+      { text: "关注点", style: "tableHeader", margin: [6, 5, 6, 5] }
+    ],
+    ...result.experts.map(
+      (expert): TableCell[] => [
+        { text: expert.name, bold: true, margin: [6, 6, 6, 6] },
+        { text: expert.shortDescription, margin: [6, 6, 6, 6] }
+      ]
+    )
+  ];
 
   return {
     pageSize: "A4",
@@ -161,16 +173,7 @@ export const buildRoundtablePdfDefinition = (
         table: {
           headerRows: 1,
           widths: [110, "*"],
-          body: [
-            [
-              { text: "专家", style: "tableHeader", margin: [6, 5, 6, 5] },
-              { text: "关注点", style: "tableHeader", margin: [6, 5, 6, 5] }
-            ],
-            ...result.experts.map((expert) => [
-              { text: expert.name, bold: true, margin: [6, 6, 6, 6] },
-              { text: expert.shortDescription, margin: [6, 6, 6, 6] }
-            ])
-          ]
+          body: expertRows
         },
         layout: "lightHorizontalLines"
       },

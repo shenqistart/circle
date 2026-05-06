@@ -18,6 +18,8 @@ type Draft = {
 type ExpertPresetEditorProps = {
   existingPresets: ExpertPreset[];
   editingPreset?: ExpertPreset | null;
+  draftNotice?: string;
+  basePresetMetadata?: Partial<ExpertPreset> | null;
   onSave: (preset: ExpertPreset) => void;
   onCancelEdit: () => void;
   embedded?: boolean;
@@ -62,6 +64,8 @@ function FieldHint({ text }: { text: string }) {
 export function ExpertPresetEditor({
   existingPresets,
   editingPreset,
+  draftNotice,
+  basePresetMetadata,
   onSave,
   onCancelEdit,
   embedded = false
@@ -79,13 +83,14 @@ export function ExpertPresetEditor({
   };
 
   const candidate = {
+    ...basePresetMetadata,
     ...draft,
     domainTags: draft.domainTags
       .split(/[,，]/)
       .map((tag) => tag.trim())
       .filter(Boolean),
     sourceType: "local",
-    evidenceStatus: editingPreset ? "user-edited-local" : "user-authored-local"
+    evidenceStatus: basePresetMetadata?.evidenceStatus ?? (editingPreset ? "user-edited-local" : "user-authored-local")
   };
   const errors = validateLocalPresetInput(candidate, existingPresets, draft.id);
 
@@ -104,12 +109,17 @@ export function ExpertPresetEditor({
       <div className="section-heading">
         <div>
           <p className="eyebrow">本地专家</p>
-          <h2 id="editor-title">{editingPreset ? "编辑 preset" : "新增 preset"}</h2>
+          <h2 id="editor-title">{draftNotice ? "预览 preset" : editingPreset ? "编辑 preset" : "新增 preset"}</h2>
         </div>
         <button type="button" onClick={onCancelEdit}>
           取消
         </button>
       </div>
+      {draftNotice && (
+        <p className="draft-notice" role="status">
+          {draftNotice}
+        </p>
+      )}
 
       <div className="form-grid">
         <label>

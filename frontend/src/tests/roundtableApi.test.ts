@@ -69,19 +69,25 @@ describe("roundtable api client", () => {
   });
 
   it("passes an abort signal to the streaming request", async () => {
-    const result = createMockRoundtable("如何做 AI 教育产品？", experts);
     const controller = new AbortController();
-    const fetchSpy = vi.fn().mockResolvedValue(eventStreamResponse([sse({ type: "final_result", result })]));
+    let requestSignal: AbortSignal | undefined;
+    const fetchSpy = vi.fn((_url: string, init?: RequestInit) => {
+      requestSignal = init?.signal ?? undefined;
+      return new Promise<Response>((_resolve, reject) => {
+        requestSignal?.addEventListener("abort", () => reject(requestSignal?.reason));
+      });
+    });
     vi.stubGlobal("fetch", fetchSpy);
 
-    await streamRoundtable("如何做 AI 教育产品？", experts, {
+    const streamPromise = streamRoundtable("如何做 AI 教育产品？", experts, {
       signal: controller.signal,
       onEvent: vi.fn()
-    });
+    }).catch((error) => error);
 
-    expect(fetchSpy).toHaveBeenCalledWith(
-      "/api/roundtable/stream",
-      expect.objectContaining({ signal: controller.signal })
-    );
+    expect(fetchSpy).toHaveBeenCalledWith("/api/roundtable/stream", expect.any(Object));
+    expect(requestSignal?.aborted).toBe(false);
+    controller.abort();
+    expect(requestSignal?.aborted).toBe(true);
+    await expect(streamPromise).resolves.toBeInstanceOf(Error);
   });
 });
