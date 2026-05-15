@@ -18,5 +18,6 @@ const reportFonts = (): TFontDictionary => ({
 export const downloadRoundtablePdf = async (result: RoundtableResult): Promise<void> => {
   const pdfMake = await import("pdfmake/build/pdfmake");
   const documentDefinition = buildRoundtablePdfDefinition(result);
-  pdfMake.createPdf(documentDefinition, undefined, reportFonts()).download(pdfReportFileName(result));
+  pdfMake.addFonts(reportFonts());
+  await pdfMake.createPdf(documentDefinition).download(pdfReportFileName(result));
 };
